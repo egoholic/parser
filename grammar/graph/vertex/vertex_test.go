@@ -3,7 +3,7 @@ package vertex_test
 import (
 	"fmt"
 
-	. "github.com/egoholic/parser/flow/vertex"
+	. "github.com/egoholic/parser/grammar/graph/vertex"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -22,13 +22,15 @@ var _ = Describe("vertex", func() {
 	})
 
 	Describe("vertex", func() {
-		Describe(".Name", func() {
+		Describe(".Name()", func() {
 			It("returns name", func() {
 				var vertex *Vertex
 				vertex = Token("-- UP")
-				Expect(vertex.Name).To(Equal("-- UP"))
+				Expect(vertex.Name()).To(Equal("<TOKEN>:`-- UP`"))
 				vertex = String()
-				Expect(vertex.Name).To(Equal("<STRING>"))
+				Expect(vertex.Name()).To(Equal("<STRING>:\"...\""))
+				vertex = Dumb()
+				Expect(vertex.Name()).To(Equal("DUMB"))
 			})
 		})
 
@@ -54,7 +56,7 @@ var _ = Describe("vertex", func() {
 					defer func() {
 						r := recover()
 						Expect(r).NotTo(BeNil())
-						Expect(r.(error).Error()).To(Equal(fmt.Sprintf("vertex `%s` already has transition to `%s`", v.Name, tv.Name)))
+						Expect(r.(error).Error()).To(Equal(fmt.Sprintf("vertex `%s` already has transition to `%s`", v.Name(), tv.Name())))
 					}()
 					v.TransitsTo(tv)
 					v.TransitsTo(tv)
