@@ -1,36 +1,33 @@
 package source
 
-import "sync"
+import "fmt"
 
 type Source struct {
-	runes []rune
-	wg    *sync.WaitGroup
-	sig   chan<- bool
+	origin      []rune
+	currentCur  int
+	commitedCur int
 }
 
-func New(runes []rune, wg *sync.WaitGroup, sig chan<- bool) *Source {
+func New(origin string) *Source {
 	return &Source{
-		runes: runes,
-		wg:    wg,
-		sig:   sig,
+		origin:      []rune(origin),
+		currentCur:  0,
+		commitedCur: 0,
 	}
 }
 
-func (s *Source) Stream() <-chan rune {
-	ch := make(chan rune)
-	s.wg.Add(1)
-	go s.stream(ch)
-	return ch
+func (s *Source) Pop() (cur int, r rune, ok bool) {
+	cur = s.currentCur
+	ok, r = s.origin[cur]
+	return
 }
-
-func (s *Source) stream(ch chan rune) {
-	defer s.wg.Done()
-	defer s.close()
-	for _, r := range s.runes {
-		ch <- r
+func (s *Source) Commit(n int) (err error) {
+	if n < s.commitedCur {
+		return fmt.Errorf("new commited cursor `%d` should be bigger than previous `%d`", n, s.commitedCur)
 	}
+	s.commitedCur = n
+	return
 }
-
-func (s *Source) close() {
-	s.sig <- true
+func (s *Source) Rollback() (n int) {
+	s.currentCur = s.commitedCur
 }

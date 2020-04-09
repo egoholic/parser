@@ -1,43 +1,38 @@
 package source_test
 
 import (
-	"sync"
-
-	. "github.com/egoholic/parser/source"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	. "github.com/stoa-bd/parser/source"
 )
 
 var _ = Describe("source", func() {
+	Describe("New()", func() {
+		It("returns *Source", func() {
+			Expect(New("source")).To(BeAssignableToTypeOf(&Source{}))
+		})
+	})
+
 	Describe("*Source", func() {
-		Describe(".Stream()", func() {
-			It("streams runes", func() {
-				var (
-					wg        sync.WaitGroup
-					sig       = make(chan bool)
-					runes     = []rune("abcdef")
-					s         = New(runes, &wg, sig)
-					ch        = s.Stream()
-					collected = []rune{}
-					finished  = false
-				)
-				wg.Add(1)
-				go func(wg *sync.WaitGroup, ch <-chan rune, sig <-chan bool) {
-					defer wg.Done()
-					for {
-						select {
-						case r := <-ch:
-							collected = append(collected, r)
-						case <-sig:
-							finished = true
-							return
-						}
-					}
-				}(&wg, ch, sig)
-				wg.Wait()
-				Expect(collected).To(Equal([]rune("abcdef")))
-				Expect(finished).To(BeTrue())
+		var source
+
+		BeforeEach(func(){
+			source = New("source")
+		})
+
+		Describe(".Pop()", func() {
+			Context("when it has more runes", func() {
+				It("returns next rune", func(){
+					cur, r, ok := source.Pop()
+          Expect(cur).To(Equal(0, 's', true))
+				})
 			})
+		})
+		Describe(".Commit()", func() {
+
+		})
+		Describe(".Rollback()", func() {
+
 		})
 	})
 })
